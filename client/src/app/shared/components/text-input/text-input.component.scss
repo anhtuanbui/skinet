@@ -1,0 +1,23 @@
+.form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+    font-weight: 400;
+
+    .form-floating:focus-within {
+        z-index: 2;
+    }
+
+    input {
+        margin-bottom: 10px;
+    }
+}
+
+.loader {
+    position: absolute;
+    width: auto;
+    top: 20px;
+    right: 10px;
+    margin-top: 0;
+}
