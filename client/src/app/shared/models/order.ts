@@ -20,8 +20,20 @@ export interface IOrder {
     orderDate: string;
     shipToAddress: IAddress;
     deliveryMethod: string;
-    shippingPrice: number;
-    orderItems: IOrderItem[];
+    shipping: number;
+    items: IOrderItem[];
+    subtotal: number;
+    total: number;
+    status: string;
+}
+export class Order {
+    id: number;
+    buyerEmail: string;
+    orderDate: string;
+    shipToAddress: IAddress;
+    deliveryMethod: string;
+    shipping: number;
+    items: IOrderItem[];
     subtotal: number;
     total: number;
     status: string;
