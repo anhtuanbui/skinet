@@ -22,7 +22,7 @@ export class OrderTotalsComponent implements OnInit {
     if (this.isOrderSummary){
       this.basketTotal$ = this.ordersService.getOrderByIdForUser(+this.activatedRoute.snapshot.paramMap.get('id')!);
     }else{
-      this.basketTotal$ = this.basketService.basketTotal$;
+      this.basketTotal$ = this.basketService.getBasketTotals();
     }
   }
 

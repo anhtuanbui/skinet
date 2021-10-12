@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { CheckoutService } from '../checkout/checkout.service';
 import { Basket, BasketTotals, IBasket, IBasketItem, IBasketTotals } from '../shared/models/basket';
 import { IDeliveryMethod } from '../shared/models/deliveryMethod';
 import { IProduct } from '../shared/models/product';
@@ -18,11 +19,35 @@ export class BasketService {
   basketTotal$ = this.basketTotalSource.asObservable();
   shipping = 0;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private checkoutService: CheckoutService) { }
+
+  createPaymentIntent() {
+    return this.http.post<IBasket>(this.baseUrl + 'payment/' + this.getCurrentBasketValue().id, {})
+      .pipe(
+        map((basket: IBasket) => {
+          this.basketSource.next(basket);
+          console.log(this.getCurrentBasketValue());
+        })
+      );
+  }
 
   setShippingPrice(deliveryMethod: IDeliveryMethod) {
     this.shipping = deliveryMethod.price;
+    const basket = this.getCurrentBasketValue();
+    basket.deliveryMethodId = deliveryMethod.id;
     this.caculateTotals();
+    this.setBasket(basket);
+  }
+
+  getBasketTotals() {
+    const basket = this.getCurrentBasketValue();
+    this.checkoutService.getDeliveryMethods().subscribe((dm: IDeliveryMethod[]) => {
+      dm.forEach(method => (method.id == basket.deliveryMethodId) ? this.shipping = method.price : null);
+      this.caculateTotals();
+    }, error => {
+      console.log(error);
+    })
+    return this.basketTotal$;
   }
 
   getBasket(id: string) {
@@ -66,21 +91,21 @@ export class BasketService {
   decrementItemQuantity(item: IBasketItem) {
     const basket = this.getCurrentBasketValue();
     const foundItemIndex = basket.items.findIndex(x => x.id === item.id);
-    if(basket.items[foundItemIndex].quantity > 1){
+    if (basket.items[foundItemIndex].quantity > 1) {
       basket.items[foundItemIndex].quantity--;
       this.setBasket(basket);
-    }else{
+    } else {
       this.removeItemFromBasket(item);
     }
   }
 
   removeItemFromBasket(item: IBasketItem) {
     const basket = this.getCurrentBasketValue();
-    if(basket.items.some(x => x.id === item.id)){
+    if (basket.items.some(x => x.id === item.id)) {
       basket.items = basket.items.filter(i => i.id !== item.id);
-      if(basket.items.length > 0){
+      if (basket.items.length > 0) {
         this.setBasket(basket);
-      }else{
+      } else {
         this.deleteBasket(basket);
       }
     }
@@ -107,30 +132,30 @@ export class BasketService {
     const shipping = this.shipping;
     const subtotal = basket.items.reduce((a, b) => (b.price * b.quantity) + a, 0);
     const total = subtotal + shipping;
-    this.basketTotalSource.next({shipping, total, subtotal});
+    this.basketTotalSource.next({ shipping, total, subtotal });
   }
 
   private addOrUpdateItem(items: IBasketItem[], itemToAdd: IBasketItem, quantity: number): IBasketItem[] {
     const index = items.findIndex(i => i.id === itemToAdd.id);
-    if(index === -1){
+    if (index === -1) {
       itemToAdd.quantity = quantity;
       items.push(itemToAdd);
-    }else{
+    } else {
       items[index].quantity += quantity;
     }
     return items;
   }
-  
+
   private createBasket(): IBasket {
     const basket = new Basket();
     localStorage.setItem('basket_id', basket.id);
     return basket;
   }
-  
+
   private mapProductItemToBasketItem(item: IProduct, quantity: any): IBasketItem {
     return {
       id: item.id,
-      productName:item.name,
+      productName: item.name,
       price: item.price,
       pictureUrl: item.pictureUrl,
       quantity,
@@ -138,5 +163,5 @@ export class BasketService {
       type: item.productType
     }
   }
-  
+
 }
