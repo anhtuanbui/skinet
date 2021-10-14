@@ -4,3 +4,4 @@ appsettings.json
 publish
 *.db
 *.rdb
+docker-compose.yml
