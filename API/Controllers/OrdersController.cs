@@ -53,6 +53,7 @@ namespace API.Controllers
             return _mapper.Map<Order, OrderToReturnDto>(order);
         }
 
+        [AllowAnonymous]
         [HttpGet("deliveryMethods")]
         public async Task<ActionResult<IReadOnlyList<DeliveryMethod>>> GetDeliveryMethods()
         {
