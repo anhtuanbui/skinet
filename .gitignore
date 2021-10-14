@@ -5,3 +5,4 @@ publish
 *.db
 *.rdb
 docker-compose.yml
+settings.json
